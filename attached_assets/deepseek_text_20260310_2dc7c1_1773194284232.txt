@@ -1,0 +1,59 @@
+# COMPLETE PROMPT FOR REPLIT AI – DOCTOR VERIFICATION SYSTEM (JAVA SPRING BOOT)
+
+Copy and paste the entire content below into Replit's AI agent. The AI will generate a fully functional, scalable, secure, and error-free Doctor Verification web application using Java and Spring Boot. Follow the instructions precisely.
+
+---
+
+## PROJECT OVERVIEW
+Build a web application that allows the public to verify whether a doctor is legitimately licensed by a medical authority. The system has two interfaces:
+- **Public side**: Anyone can search for a doctor by name or license number and see verification status (Verified, Expired, Revoked, or Not Found). Each verified doctor has a unique QR code that patients can scan for instant verification.
+- **Admin side**: Authorized medical council personnel can log in securely to manage doctor records (add, edit, revoke, view logs).
+
+The application must be **scalable** (stateless, ready for horizontal scaling), **secure** (authentication, authorization, input validation, encryption), and **effective** (fast searches, clear UI, error-free). Use best practices and ensure the code compiles and runs on Replit without any modifications.
+
+---
+
+## TECHNOLOGY STACK
+- **Language**: Java 17
+- **Framework**: Spring Boot 3.1.x
+- **Build Tool**: Maven (pom.xml)
+- **Database**: H2 (in-memory for development, but configurable for PostgreSQL later)
+- **Persistence**: Spring Data JPA + Hibernate
+- **Security**: Spring Security with JWT authentication
+- **QR Code**: ZXing ("Zebra Crossing") library
+- **Frontend**: Thymeleaf templates + Bootstrap 5 (responsive)
+- **Utilities**: Lombok (optional, to reduce boilerplate), MapStruct (optional for DTO mapping)
+- **Testing**: JUnit 5, Mockito, Spring Boot Test
+
+---
+
+## SYSTEM ARCHITECTURE
+Follow a standard layered architecture:
+- **Controller Layer**: Handle HTTP requests (MVC for web pages, REST for APIs).
+- **Service Layer**: Business logic, transaction management.
+- **Repository Layer**: Data access via Spring Data JPA.
+- **DTO Layer**: Data transfer objects to decouple API from entities.
+- **Security Layer**: JWT filters, authentication manager, user details service.
+- **Utility Layer**: QR code generation, validation helpers.
+
+---
+
+## DATABASE SCHEMA (ENTITIES)
+
+### 1. User Entity (for authentication)
+```java
+@Entity @Table(name = "users")
+public class User {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(unique = true, nullable = false)
+    private String username;   // email
+    @Column(nullable = false)
+    private String password;   // BCrypt hash
+    private String fullName;
+    @Enumerated(EnumType.STRING)
+    private UserType userType; // ADMIN, DOCTOR (if needed)
+    private boolean active = true;
+    // getters, setters, constructors
+}
+public enum UserType { ADMIN, DOCTOR }

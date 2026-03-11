@@ -1,0 +1,351 @@
+```text
+# COMPLETE PROMPT FOR REPLIT AI – DOCTOR VERIFICATION SYSTEM (JAVA SPRING BOOT)
+
+Copy and paste the entire content below into Replit's AI agent. The AI will generate a fully functional, scalable, secure, and error-free Doctor Verification web application using Java and Spring Boot. Follow the instructions precisely.
+
+---
+
+## PROJECT OVERVIEW
+Build a web application that allows the public to verify whether a doctor is legitimately licensed by a medical authority. The system has two interfaces:
+- **Public side**: Anyone can search for a doctor by name or license number and see verification status (Verified, Expired, Revoked, or Not Found). Each verified doctor has a unique QR code that patients can scan for instant verification.
+- **Admin side**: Authorized medical council personnel can log in securely to manage doctor records (add, edit, revoke, view logs).
+
+The application must be **scalable** (stateless, ready for horizontal scaling), **secure** (authentication, authorization, input validation, encryption), and **effective** (fast searches, clear UI, error-free). Use best practices and ensure the code compiles and runs on Replit without any modifications.
+
+---
+
+## TECHNOLOGY STACK
+- **Language**: Java 17
+- **Framework**: Spring Boot 3.1.x
+- **Build Tool**: Maven (pom.xml)
+- **Database**: H2 (in-memory for development, but configurable for PostgreSQL later)
+- **Persistence**: Spring Data JPA + Hibernate
+- **Security**: Spring Security with JWT authentication
+- **QR Code**: ZXing ("Zebra Crossing") library
+- **Frontend**: Thymeleaf templates + Bootstrap 5 (responsive)
+- **Utilities**: Lombok (optional, to reduce boilerplate), MapStruct (optional for DTO mapping)
+- **Testing**: JUnit 5, Mockito, Spring Boot Test
+
+---
+
+## SYSTEM ARCHITECTURE
+Follow a standard layered architecture:
+- **Controller Layer**: Handle HTTP requests (MVC for web pages, REST for APIs).
+- **Service Layer**: Business logic, transaction management.
+- **Repository Layer**: Data access via Spring Data JPA.
+- **DTO Layer**: Data transfer objects to decouple API from entities.
+- **Security Layer**: JWT filters, authentication manager, user details service.
+- **Utility Layer**: QR code generation, validation helpers.
+
+---
+
+## DATABASE SCHEMA (ENTITIES)
+
+### 1. User Entity (for authentication)
+```java
+@Entity @Table(name = "users")
+public class User {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(unique = true, nullable = false)
+    private String username;   // email
+    @Column(nullable = false)
+    private String password;   // BCrypt hash
+    private String fullName;
+    @Enumerated(EnumType.STRING)
+    private UserType userType; // ADMIN, DOCTOR (if needed)
+    private boolean active = true;
+    // getters, setters, constructors
+}
+public enum UserType { ADMIN, DOCTOR }
+```
+
+### 2. Doctor Entity (professional details)
+```java
+@Entity
+public class Doctor {
+    @Id
+    private Long id; // same as User.id (shared primary key)
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "id")
+    private User user;
+    @Column(unique = true, nullable = false)
+    private String licenseNumber;
+    private String specialization;
+    private String qualifications; // e.g., "MBBS, MD"
+    private String contactEmail;
+    private String contactPhone;
+    private String clinicAddress;
+    @Temporal(TemporalType.DATE)
+    private Date licenseExpiryDate;
+    @Enumerated(EnumType.STRING)
+    private VerificationStatus verificationStatus; // VERIFIED, EXPIRED, REVOKED, PENDING
+    private String qrCodePath; // store path or base64 image
+    // getters, setters
+}
+public enum VerificationStatus { VERIFIED, EXPIRED, REVOKED, PENDING }
+```
+
+### 3. VerificationLog Entity (audit trail)
+```java
+@Entity
+public class VerificationLog {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @ManyToOne
+    private Doctor doctor;
+    private String searchedBy; // IP address or "public"
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date searchTimestamp;
+    private boolean resultFound;
+    // getters, setters
+}
+```
+
+---
+
+## SECURITY REQUIREMENTS
+- **Authentication**: JWT-based stateless authentication. Provide a login endpoint (`/admin/login`) that returns a JWT token. Use Spring Security.
+- **Password Encryption**: BCrypt (Spring Security's `BCryptPasswordEncoder`).
+- **Authorization**: Protect all admin routes (`/admin/**` and `/api/admin/**`) with role `ADMIN`. Public endpoints (`/`, `/public/**`, `/api/public/**`) are accessible without authentication.
+- **JWT Configuration**: Token validity 24 hours. Include user ID and role in claims.
+- **Input Validation**: Use Bean Validation (`@Valid`, `@NotNull`, `@Pattern`, etc.) on DTOs and entities.
+- **SQL Injection**: Prevented by using JPA parameter binding.
+- **CORS**: Configure to allow requests from any origin (for future mobile app).
+- **Rate Limiting**: Implement a simple rate limiter (e.g., bucket4j or a custom filter) on public search endpoints to prevent abuse.
+
+---
+
+## API ENDPOINTS
+
+### MVC (Server-Side Rendered Pages)
+
+#### Public
+- `GET  /` – Home page with search form.
+- `GET  /search` – Process search query (by name or license), display result page.
+- `GET  /doctor/{licenseNumber}` – Detailed view of a doctor with QR code.
+- `GET  /scan` – Page with QR scanner (JavaScript library integrated).
+
+#### Admin
+- `GET  /admin/login` – Login page.
+- `POST /admin/login` – Submit credentials, set session (or return JWT for AJAX).
+- `GET  /admin/dashboard` – Admin dashboard with stats and quick links.
+- `GET  /admin/doctors` – List all doctors (searchable).
+- `GET  /admin/doctors/add` – Form to add a new doctor.
+- `POST /admin/doctors` – Save new doctor (creates User + Doctor).
+- `GET  /admin/doctors/edit/{id}` – Edit form.
+- `POST /admin/doctors/edit/{id}` – Update doctor.
+- `POST /admin/doctors/revoke/{id}` – Mark doctor as REVOKED.
+- `GET  /admin/doctors/{id}/logs` – View verification logs for a doctor.
+- `GET  /admin/logout` – Logout.
+
+### REST API (for potential mobile app)
+
+#### Public
+- `GET  /api/public/search?q={query}` – Returns JSON list of matching doctors (limited fields).
+- `GET  /api/public/doctor/{licenseNumber}` – Returns full doctor details (including verification status).
+- `GET  /api/public/qr/{licenseNumber}` – Returns QR code image as PNG.
+
+#### Admin (requires Bearer token)
+- `POST /api/admin/auth/login` – Login, returns JWT.
+- `GET  /api/admin/doctors` – List all doctors (paginated).
+- `POST /api/admin/doctors` – Create new doctor.
+- `PUT  /api/admin/doctors/{id}` – Update doctor.
+- `DELETE /api/admin/doctors/{id}` – Soft delete (revoke).
+- `GET  /api/admin/doctors/{id}/logs` – Get verification logs.
+
+---
+
+## FRONTEND PAGES (Thymeleaf Templates)
+All pages must be responsive (Bootstrap 5). Use clean, professional design.
+
+- **index.html**: Search bar (centered), brief instructions.
+- **result.html**: Display doctor info in a card. Show status with colored badge. Include QR code image (downloadable). If not found, show "No doctor found with that name/license".
+- **doctor-detail.html**: Similar to result but more details.
+- **scan.html**: Include QR scanner script (e.g., Instascan or jsQR). On scan, redirect to `/doctor/{licenseNumber}`.
+- **admin/login.html**: Simple login form (username/password).
+- **admin/dashboard.html**: Cards with counts (total doctors, verified, expired). Quick links.
+- **admin/doctors/list.html**: Table of doctors with columns: Name, License, Specialization, Status, Expiry, Actions (Edit, Revoke, View Logs). Add search/filter.
+- **admin/doctors/form.html**: Form to add/edit doctor with fields: full name (used for User), license number, specialization, qualifications, contact email, phone, clinic address, expiry date, status (dropdown). Include validation messages.
+
+---
+
+## QR CODE GENERATION & SCANNING
+- **Generation**: When a doctor is created or updated, generate a QR code containing the verification URL: `https://<your-replit-url>/doctor/{licenseNumber}`. Use ZXing to create a PNG image. Save the image in a accessible folder (e.g., `/uploads/qrcodes/`) and store the path in `Doctor.qrCodePath`. Serve the image via a controller endpoint (`/qr/{licenseNumber}`).
+- **Scanning**: On the `/scan` page, include a JavaScript library (e.g., Instascan) that accesses the camera, decodes QR codes, and redirects to the doctor detail page.
+
+---
+
+## SCALABILITY & PERFORMANCE
+- **Stateless**: Use JWT for admin API; do not rely on HTTP sessions for scaling.
+- **Caching**: Cache frequently accessed doctor data (e.g., using Spring Cache with a simple ConcurrentMap) for public search results. Invalidate cache on updates.
+- **Database Indexes**: Add indexes on `licenseNumber`, `name` (in User), and `verificationStatus`.
+- **Connection Pool**: Use HikariCP (default in Spring Boot) with appropriate pool size.
+- **Rate Limiting**: Implement a filter that limits public search requests to 10 per minute per IP address (store counts in memory or use Bucket4j).
+- **Pagination**: Admin list endpoints should support pagination (page, size) to handle large datasets.
+
+---
+
+## STEP-BY-STEP IMPLEMENTATION INSTRUCTIONS (FOR AI)
+
+Generate a complete Maven Spring Boot project with the following structure:
+
+```
+src/main/java/com/doctorverify/
+├── DoctorVerificationApplication.java
+├── config/
+│   ├── SecurityConfig.java
+│   ├── JwtAuthenticationFilter.java
+│   ├── CorsConfig.java
+│   ├── RateLimitingFilter.java (optional)
+│   └── CacheConfig.java
+├── controller/
+│   ├── PublicMvcController.java   (web pages)
+│   ├── AdminMvcController.java
+│   ├── api/
+│   │   ├── PublicApiController.java
+│   │   └── AdminApiController.java
+├── service/
+│   ├── UserService.java
+│   ├── DoctorService.java
+│   ├── QrCodeService.java
+│   ├── VerificationLogService.java
+│   └── CustomUserDetailsService.java
+├── repository/
+│   ├── UserRepository.java
+│   ├── DoctorRepository.java
+│   └── VerificationLogRepository.java
+├── model/
+│   ├── User.java
+│   ├── Doctor.java
+│   ├── VerificationLog.java
+│   └── enums/ (UserType, VerificationStatus)
+├── dto/
+│   ├── DoctorRequestDto.java
+│   ├── DoctorResponseDto.java
+│   ├── LoginRequestDto.java
+│   ├── JwtResponseDto.java
+│   └── mapper/ (if using MapStruct)
+├── security/
+│   ├── JwtTokenProvider.java
+│   └── JwtAuthenticationEntryPoint.java
+└── util/
+    └── QrCodeGenerator.java
+```
+
+**Instructions:**
+
+1. **Generate `pom.xml`** with dependencies: spring-boot-starter-web, spring-boot-starter-data-jpa, spring-boot-starter-security, spring-boot-starter-thymeleaf, spring-boot-starter-validation, com.h2database, io.jsonwebtoken:jjwt, com.google.zxing:core, com.google.zxing:javase, org.projectlombok (optional), org.mapstruct (optional), and spring-boot-starter-test.
+2. **Create entities** as defined above with proper JPA annotations. Add `@PrePersist` and `@PreUpdate` to set timestamps if needed.
+3. **Create repositories** extending `JpaRepository`.
+4. **Create DTOs** for requests/responses. For DoctorResponseDto, include all fields from Doctor and the fullName from User.
+5. **Implement `CustomUserDetailsService`** to load users by username from the database.
+6. **Implement `JwtTokenProvider`** to generate and validate tokens, extract claims.
+7. **Configure `SecurityConfig`**:
+   - Disable CSRF.
+   - Set session management to stateless.
+   - Define public and private URL patterns.
+   - Add JWT filter before `UsernamePasswordAuthenticationFilter`.
+   - Set password encoder to `BCryptPasswordEncoder`.
+8. **Implement `JwtAuthenticationFilter`** to read token from Authorization header, validate, and set authentication in context.
+9. **Create `QrCodeGenerator`** utility that takes a string (URL) and returns a byte array of PNG image. Use ZXing's `QRCodeWriter` and `MatrixToImageWriter`.
+10. **Implement `QrCodeService`** that calls the generator and saves the file (or returns bytes). Store files in a directory; ensure the directory exists.
+11. **Create controllers**:
+    - `PublicMvcController`: methods for home (`/`), search (`/search`), doctor detail (`/doctor/{license}`), scan page (`/scan`). Use `DoctorService` to query.
+    - `AdminMvcController`: secured methods for admin pages. Use `@PreAuthorize("hasRole('ADMIN')")` or configure in security.
+    - `PublicApiController`: REST endpoints returning JSON.
+    - `AdminApiController`: REST endpoints with JWT authentication.
+12. **Implement service layer**:
+    - `DoctorService`: methods for search (by name or license), find by license, create/update/revoke, with proper transaction management. When creating a doctor, also create a User with type DOCTOR (or ADMIN if needed). Hash password for the new user (default password maybe "changeme" or generate random).
+    - `UserService`: for admin authentication, user management.
+    - `VerificationLogService`: log each public search (asynchronously to not block).
+13. **Add validation** on DTOs using annotations (`@NotBlank`, `@Email`, `@Pattern` for license number, `@Future` for expiry date).
+14. **Exception handling**: Create a global exception handler (`@ControllerAdvice`) to return proper error pages or JSON error messages.
+15. **Frontend**:
+    - Create Thymeleaf templates in `src/main/resources/templates/` with proper fragments.
+    - Use Bootstrap 5 CDN for styling.
+    - Include a simple JavaScript for QR scanning (e.g., from Instascan CDN) on `scan.html`.
+    - Ensure forms use CSRF tokens if not disabled (but we disabled CSRF, so be careful).
+16. **Add sample data** (optional) via a `CommandLineRunner` to insert an admin user (username: admin, password: admin123, hashed) and a few test doctors.
+17. **Configure application.properties**:
+    - Server port: 8080 (Replit will map automatically).
+    - Database: H2 in-memory (spring.datasource.url=jdbc:h2:mem:doctorverify;DB_CLOSE_DELAY=-1).
+    - JPA: ddl-auto=update, show-sql=true (for debugging).
+    - JWT secret: a strong secret key (e.g., "mySecretKeyWithAtLeast32Characters!").
+    - File upload path for QR codes: a directory like "./qr-codes" (create on startup).
+18. **Write unit tests** for critical services (DoctorService, JwtTokenProvider) and integration tests for API endpoints (using `@WebMvcTest` and `@DataJpaTest`). Ensure tests pass.
+19. **Ensure no errors**: The application must start without exceptions on Replit. Handle all edge cases (null inputs, not found, etc.) gracefully.
+
+---
+
+## TESTING REQUIREMENTS
+- **Unit Tests**: Cover service methods (search, create, update) with mocked repositories.
+- **Integration Tests**: Test API endpoints with mock MVC; test database interactions with `@DataJpaTest`.
+- **Security Tests**: Ensure unauthenticated requests to admin endpoints are rejected; JWT authentication works.
+- **UI Tests** (optional): Can be manual.
+
+---
+
+## DEPLOYMENT ON REPLIT
+- The application will run via `mvn spring-boot:run`. Replit automatically provides a public URL.
+- Ensure the QR code directory is created on startup (use `@PostConstruct` in a component).
+- Use environment variables for sensitive data (JWT secret, database credentials) if needed.
+
+---
+
+## ADDITIONAL NOTES
+- Write clean, commented code. Use meaningful variable names.
+- Follow REST conventions for API endpoints.
+- Include a `README.md` file in the project root with:
+  - Project title and description.
+  - Technologies used.
+  - How to run locally.
+  - Default admin credentials (if any).
+  - API documentation summary.
+- The AI must produce a complete, working application. Test it mentally before finalizing.
+
+**Begin generating the project now. Provide all files in a structured format, one after another, with clear file paths as comments. Ensure there are no compilation errors.**
+```
+
+---
+
+## PART 2: PROJECT LIFECYCLE EXPLANATION (For Your Understanding)
+
+This section explains the reasoning behind the prompt, from requirements to deployment. It is not part of the AI prompt but included here for your reference.
+
+### 1. Requirements Gathering
+- **Stakeholders**: Patients, Medical Council Admins.
+- **Core needs**: Public verification, admin management, audit trail.
+- **Non-functional**: Security, scalability, responsiveness.
+
+### 2. System Design
+- **Architecture**: Layered MVC + REST API.
+- **Database**: Shared primary key between User and Doctor to avoid nulls and enforce one-to-one.
+- **Security**: JWT for stateless scaling, BCrypt for passwords.
+
+### 3. Technology Selection
+- **Spring Boot**: Industry standard, robust ecosystem.
+- **JWT**: Stateless authentication suitable for cloud.
+- **H2**: Easy for prototyping; can switch to PostgreSQL.
+- **ZXing**: Reliable QR code generation.
+- **Thymeleaf + Bootstrap**: Server-side rendering with responsive design.
+
+### 4. Implementation Strategy
+- **Entity design**: Separate authentication (User) and professional data (Doctor) for clarity and security.
+- **QR Code**: Generated on save, served via endpoint, scanned via JavaScript.
+- **Audit Logging**: Log each public search for accountability.
+
+### 5. Testing
+- **Unit tests** for business logic.
+- **Integration tests** for API and database.
+- **Security tests** for authentication.
+
+### 6. Deployment
+- Replit's Java environment runs Spring Boot with `mvn spring-boot:run`.
+- Public URL provided automatically.
+
+---
+
+**Now paste Part 1 into Replit's AI agent and let it build your application.**
+```

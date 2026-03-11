@@ -1,0 +1,40 @@
+src/main/java/com/doctorverify/
+├── DoctorVerificationApplication.java
+├── config/
+│   ├── SecurityConfig.java
+│   ├── JwtAuthenticationFilter.java
+│   ├── CorsConfig.java
+│   ├── RateLimitingFilter.java (optional)
+│   └── CacheConfig.java
+├── controller/
+│   ├── PublicMvcController.java   (web pages)
+│   ├── AdminMvcController.java
+│   ├── api/
+│   │   ├── PublicApiController.java
+│   │   └── AdminApiController.java
+├── service/
+│   ├── UserService.java
+│   ├── DoctorService.java
+│   ├── QrCodeService.java
+│   ├── VerificationLogService.java
+│   └── CustomUserDetailsService.java
+├── repository/
+│   ├── UserRepository.java
+│   ├── DoctorRepository.java
+│   └── VerificationLogRepository.java
+├── model/
+│   ├── User.java
+│   ├── Doctor.java
+│   ├── VerificationLog.java
+│   └── enums/ (UserType, VerificationStatus)
+├── dto/
+│   ├── DoctorRequestDto.java
+│   ├── DoctorResponseDto.java
+│   ├── LoginRequestDto.java
+│   ├── JwtResponseDto.java
+│   └── mapper/ (if using MapStruct)
+├── security/
+│   ├── JwtTokenProvider.java
+│   └── JwtAuthenticationEntryPoint.java
+└── util/
+    └── QrCodeGenerator.java

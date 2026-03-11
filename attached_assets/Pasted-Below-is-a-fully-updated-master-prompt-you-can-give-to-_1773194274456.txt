@@ -1,0 +1,678 @@
+Below is a **fully updated master prompt** you can give to a developer or AI agent to extend your **Doctor Verification System** with:
+
+* Random doctors in the database
+* Doctor verification application workflow
+* Government document verification
+* Application tracking
+* Unique doctor credentials
+* Emergency prescriptions
+* QR scan logging
+* Dummy data for testing
+* Real-time APIs
+
+This prompt assumes the **existing Spring Boot project architecture** you already defined earlier (controllers, services, repositories, models, DTOs, security, etc.). 
+
+---
+
+# FULL UPDATED DEVELOPMENT PROMPT
+
+## Advanced Doctor License Verification & Application System
+
+---
+
+# 1. PROJECT OBJECTIVE
+
+Extend the existing **Doctor Verification System** into a **complete government-style verification platform**.
+
+The platform must support:
+
+1. Public verification of doctors
+2. Doctor registration and application submission
+3. Government verification of documents
+4. Application tracking using application ID
+5. Doctor login with unique credentials
+6. Emergency prescription feature
+7. QR scanning verification
+8. Scan logs stored in database
+9. Dummy data for testing
+10. Real-time REST APIs
+
+The system must remain **secure, scalable, and production-ready**.
+
+---
+
+# 2. USER ROLES
+
+Define the following system roles.
+
+| Role             | Description                      |
+| ---------------- | -------------------------------- |
+| PUBLIC           | Anyone verifying a doctor        |
+| DOCTOR           | Doctor applying for verification |
+| GOVERNMENT_ADMIN | Authority verifying doctors      |
+| SYSTEM           | Automated services               |
+
+---
+
+# 3. CORE SYSTEM MODULES
+
+The system must contain **five modules**.
+
+### Module 1
+
+Doctor Verification (Public)
+
+### Module 2
+
+Doctor Application System
+
+### Module 3
+
+Government Document Verification
+
+### Module 4
+
+Emergency Prescription System
+
+### Module 5
+
+QR Scan Tracking System
+
+---
+
+# 4. DATABASE DESIGN (UPDATED)
+
+Add new entities in addition to existing ones.
+
+Your existing entities include:
+
+* User
+* Doctor
+* VerificationLog 
+
+Extend the schema with the following tables.
+
+---
+
+# 5. DOCTOR APPLICATION TABLE
+
+This table stores doctor verification applications.
+
+### Table: doctor_application
+
+Fields:
+
+```
+applicationId (UUID)
+doctorName
+email
+phone
+specialization
+qualifications
+licenseNumber
+hospitalName
+clinicAddress
+documentUrl
+submittedDate
+verificationDate
+status
+reviewNotes
+assignedOfficer
+```
+
+Application status values:
+
+```
+SUBMITTED
+UNDER_REVIEW
+DOCUMENT_PENDING
+APPROVED
+REJECTED
+VERIFIED
+```
+
+---
+
+# 6. DOCUMENT VERIFICATION TABLE
+
+### Table: document_verification
+
+Fields:
+
+```
+id
+applicationId
+documentType
+documentUrl
+verifiedBy
+verificationDate
+verificationStatus
+remarks
+```
+
+Document types:
+
+```
+MEDICAL_LICENSE
+DEGREE_CERTIFICATE
+IDENTITY_PROOF
+HOSPITAL_AFFILIATION
+```
+
+---
+
+# 7. APPLICATION TRACKING TABLE
+
+### Table: application_tracking
+
+Tracks every update.
+
+Fields:
+
+```
+id
+applicationId
+status
+updatedBy
+updateDate
+comments
+```
+
+---
+
+# 8. EMERGENCY PRESCRIPTION TABLE
+
+Doctors can create emergency prescriptions.
+
+### Table: emergency_prescription
+
+Fields:
+
+```
+id
+doctorId
+patientName
+patientAge
+symptoms
+prescriptionText
+issuedAt
+validUntil
+emergencyLevel
+```
+
+Emergency levels:
+
+```
+LOW
+MEDIUM
+HIGH
+CRITICAL
+```
+
+---
+
+# 9. QR SCAN TRACKING TABLE
+
+Store all QR scans.
+
+### Table: qr_scan_log
+
+Fields:
+
+```
+id
+doctorId
+licenseNumber
+scannedByIp
+scannerLocation
+deviceType
+scanTime
+scanResult
+```
+
+---
+
+# 10. RANDOM DOCTOR DATA GENERATION
+
+On application startup generate **random doctors**.
+
+Generate:
+
+```
+50 – 100 doctors
+```
+
+Example data:
+
+| Name            | License  | Specialization |
+| --------------- | -------- | -------------- |
+| Dr John Smith   | LIC-1001 | Cardiology     |
+| Dr Priya Sharma | LIC-1002 | Neurology      |
+| Dr Ahmed Khan   | LIC-1003 | Orthopedics    |
+
+Insert using:
+
+```
+CommandLineRunner
+```
+
+Fields must include:
+
+```
+name
+licenseNumber
+specialization
+verificationStatus
+expiryDate
+qrCodePath
+```
+
+This extends the Doctor entity structure already defined. 
+
+---
+
+# 11. DOCTOR APPLICATION WORKFLOW
+
+### Step 1
+
+Doctor submits application.
+
+Endpoint:
+
+```
+POST /api/doctor/apply
+```
+
+Input:
+
+```
+name
+email
+phone
+specialization
+documents
+```
+
+System generates:
+
+```
+applicationId
+```
+
+---
+
+### Step 2
+
+Doctor tracks application.
+
+Endpoint:
+
+```
+GET /api/doctor/application/{applicationId}
+```
+
+Response:
+
+```
+application status
+verification stage
+assigned officer
+verification date
+```
+
+---
+
+### Step 3
+
+Government verifies documents.
+
+Endpoint:
+
+```
+POST /api/admin/verify-document
+```
+
+Government officer must check documents manually before approval.
+
+---
+
+### Step 4
+
+Government schedules verification.
+
+Endpoint:
+
+```
+POST /api/admin/schedule-verification
+```
+
+Fields:
+
+```
+applicationId
+verificationDate
+officerName
+```
+
+---
+
+### Step 5
+
+Application approval.
+
+When approved:
+
+1. Create doctor record
+2. Generate QR code
+3. Generate login credentials
+
+---
+
+# 12. DOCTOR LOGIN CREDENTIALS
+
+After verification generate credentials.
+
+Fields:
+
+```
+username = email
+password = random secure password
+```
+
+Send credentials to doctor.
+
+---
+
+# 13. PUBLIC SEARCH SYSTEM
+
+Public users can search by:
+
+```
+doctor name
+license number
+specialization
+```
+
+Endpoint:
+
+```
+GET /api/public/search?q=
+```
+
+Response:
+
+```
+doctor name
+specialization
+license
+verification status
+```
+
+---
+
+# 14. QR VERIFICATION FLOW
+
+When QR code is scanned:
+
+```
+GET /doctor/{licenseNumber}
+```
+
+System must:
+
+1. Verify doctor
+2. Display details
+3. Log scan in database
+
+Insert record into:
+
+```
+qr_scan_log
+```
+
+---
+
+# 15. EMERGENCY PRESCRIPTION FEATURE
+
+Verified doctors can create prescriptions.
+
+Endpoint:
+
+```
+POST /api/doctor/emergency-prescription
+```
+
+Doctors can submit:
+
+```
+patientName
+patientAge
+symptoms
+medicine
+dosage
+notes
+```
+
+Prescription is stored and accessible.
+
+---
+
+# 16. REAL-TIME BACKEND APIs
+
+Create REST APIs for:
+
+### Public APIs
+
+```
+GET /api/public/search
+GET /api/public/doctor/{license}
+GET /api/public/qr/{license}
+```
+
+---
+
+### Doctor APIs
+
+```
+POST /api/doctor/apply
+GET /api/doctor/application/{id}
+POST /api/doctor/prescription
+```
+
+---
+
+### Government APIs
+
+```
+POST /api/admin/login
+GET /api/admin/applications
+POST /api/admin/verify-document
+POST /api/admin/approve
+POST /api/admin/reject
+POST /api/admin/schedule
+```
+
+---
+
+# 17. REALTIME DATA SUPPORT
+
+Backend must support:
+
+```
+REST APIs
+JSON responses
+Pagination
+Filtering
+```
+
+Optional:
+
+```
+WebSocket notifications
+```
+
+Examples:
+
+```
+application status updates
+verification notifications
+```
+
+---
+
+# 18. DATA VALIDATION
+
+Use:
+
+```
+@NotNull
+@NotBlank
+@Email
+@Pattern
+@Future
+```
+
+Validate:
+
+* license numbers
+* phone numbers
+* email
+
+---
+
+# 19. SECURITY
+
+Implement:
+
+```
+JWT authentication
+BCrypt password hashing
+role-based authorization
+```
+
+Roles:
+
+```
+ADMIN
+DOCTOR
+PUBLIC
+```
+
+---
+
+# 20. SEARCH PERFORMANCE
+
+Add database indexes on:
+
+```
+licenseNumber
+doctorName
+verificationStatus
+```
+
+Use caching for search results.
+
+---
+
+# 21. TEST DATA REQUIREMENTS
+
+Generate:
+
+```
+100 doctors
+30 applications
+20 verified doctors
+10 revoked doctors
+```
+
+Example license numbers:
+
+```
+LIC-1001
+LIC-1002
+LIC-1003
+```
+
+---
+
+# 22. TESTING REQUIREMENTS
+
+Write tests for:
+
+### Unit Tests
+
+```
+DoctorService
+ApplicationService
+VerificationService
+```
+
+---
+
+### Integration Tests
+
+Test endpoints:
+
+```
+search doctor
+submit application
+verify documents
+generate QR
+create prescription
+```
+
+---
+
+# 23. SYSTEM FLOW
+
+Complete flow:
+
+```
+Doctor applies
+     ↓
+Application created
+     ↓
+Government verifies documents
+     ↓
+Verification date scheduled
+     ↓
+Application approved
+     ↓
+Doctor record created
+     ↓
+QR generated
+     ↓
+Doctor credentials issued
+     ↓
+Public verification enabled
+```
+
+---
+
+# 24. DATABASE POPULATION SCRIPT
+
+Provide SQL script or startup loader to populate:
+
+```
+doctors
+applications
+prescriptions
+scan logs
+```
+
+---
+
+# 25. SUCCESS CRITERIA
+
+System must:
+
+✔ Run without errors
+✔ Generate random doctors
+✔ Support doctor search
+✔ Track application status
+✔ Verify documents
+✔ Generate QR codes
+✔ Log scans
+✔ Support prescriptions
+✔ Provide secure APIs
+
