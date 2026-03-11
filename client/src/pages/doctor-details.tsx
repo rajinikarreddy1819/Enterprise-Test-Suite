@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout";
 import { useDoctorDetails, useLogScan } from "@/hooks/use-public";
 import { StatusBadge } from "@/components/ui-elements";
 import { motion } from "framer-motion";
-import { MapPin, Mail, Phone, Calendar, Shield, Award, Building, Activity, ShieldCheck, Download } from "lucide-react";
+import { MapPin, Mail, Phone, Calendar, Shield, Award, Building, Activity, ShieldCheck, Download, AlertTriangle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";

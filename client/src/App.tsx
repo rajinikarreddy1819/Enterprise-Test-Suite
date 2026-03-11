@@ -18,12 +18,12 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/doctor/dashboard" component={DoctorDashboard} />
       <Route path="/doctor/:license" component={DoctorDetails} />
       <Route path="/apply" component={Apply} />
       <Route path="/track" component={Track} />
       <Route path="/login" component={Login} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
-      <Route path="/doctor/dashboard" component={DoctorDashboard} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

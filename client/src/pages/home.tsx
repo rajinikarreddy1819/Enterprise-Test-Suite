@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout";
 import { motion } from "framer-motion";
-import { Search, Shield, Award, Users, ChevronRight, User } from "lucide-react";
+import { Search, Shield, Award, Users, ChevronRight, User, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSearchDoctors } from "@/hooks/use-public";
