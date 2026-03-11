@@ -229,17 +229,14 @@ Reject application
 
 POST /api/admin/reject
 
-****Default Login Credentials****
+## Default Login Credentials
 
-**Username**	       **Password**	       **Role**
-
-System Admin	       password123	      Administrator
-
-Dr. John Smith	     password123	      Doctor
-
-Dr. Priya Sharma     password123	      Doctor
-
-Dr. Ahmed Khan	     password123	      Doctor
+| Username        | Password    | Role           |
+|-----------------|-------------|---------------|
+| System Admin    | password123 | Administrator |
+| Dr. John Smith  | password123 | Doctor        |
+| Dr. Priya Sharma| password123 | Doctor        |
+| Dr. Ahmed Khan  | password123 | Doctor        |
 
 ****Project Workflow****
 
